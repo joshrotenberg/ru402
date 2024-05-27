@@ -21,12 +21,12 @@ struct Cli {
     redis_url: String,
     /// The id of the book to get recommendations for
     #[clap(short, long, default_value = "")]
-    id: String,
+    book: String,
     /// Create the index (set to false to skip creating the index and just query the data)
-    #[clap(short, long, action = clap::ArgAction::Set)]
+    #[clap(short, long, action = clap::ArgAction::Set, default_value = "true")]
     index: bool,
     /// Load the data (set to false to skip loading the data and just query the index)
-    #[clap(short, long, action = clap::ArgAction::Set)]
+    #[clap(short, long, action = clap::ArgAction::Set, default_value = "true")]
     load: bool,
 }
 
@@ -65,7 +65,7 @@ fn main() -> Result<()> {
     }
 
     // run sample queries if no id was specified
-    if args.id.is_empty() {
+    if args.book.is_empty() {
         println!("Recommendations for book:26415");
         print_recommendations(get_recommendation(&mut connection, "book:26415")?);
         println!("Recommendations for book:9");
@@ -76,11 +76,11 @@ fn main() -> Result<()> {
         println!("Recommendations by range for book:9");
         print_recommendations(get_recommendation_by_range(&mut connection, "book:9")?);
     } else {
-        println!("Recommendations for {}", args.id);
-        print_recommendations(get_recommendation(&mut connection, &args.id)?);
+        println!("Recommendations for {}", args.book);
+        print_recommendations(get_recommendation(&mut connection, &args.book)?);
 
-        println!("Recommendations by range for {}", args.id);
-        print_recommendations(get_recommendation_by_range(&mut connection, &args.id)?);
+        println!("Recommendations by range for {}", args.book);
+        print_recommendations(get_recommendation_by_range(&mut connection, &args.book)?);
     }
 
     Ok(())
