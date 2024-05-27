@@ -37,6 +37,9 @@ fn main() -> Result<()> {
     let client = redis::Client::open(args.redis_url)?;
     let mut connection = client.get_connection()?;
 
+    let value: Value = redis::cmd("PING").query(&mut connection)?;
+    println!("PING: {:?}", value);
+
     // define the model
     let model = SentenceEmbeddingsBuilder::remote(SentenceEmbeddingsModelType::AllMiniLmL6V2)
         .create_model()?;
