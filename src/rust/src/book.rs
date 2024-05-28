@@ -46,7 +46,7 @@ impl FromStr for InventoryStatus {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_ascii_lowercase().as_str() {
             "on_loan" => Ok(InventoryStatus::OnLoan),
-            "onloan" => Ok(InventoryStatus::OnLoan),
+            "onloan" => Ok(InventoryStatus::OnLoan), // need this for reading from redis
             "available" => Ok(InventoryStatus::Available),
             "maintenance" => Ok(InventoryStatus::Maintenance),
             e => Err(format!("Unknown inventory status: {}", e)),
@@ -95,7 +95,7 @@ pub struct Book {
 impl FromRedisValue for Book {
     fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
         let json: String = FromRedisValue::from_redis_value(v)?;
-        let books: Vec<Book> = serde_json::from_str(&json).unwrap();
+        let books: Vec<Book> = serde_json::from_str(&json)?;
 
         Ok(books.first().unwrap().clone())
     }
@@ -116,7 +116,7 @@ pub struct Recommendations {
 
 impl FromRedisValue for Recommendations {
     fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
-        let result = v.as_sequence().unwrap();
+        let result = v.as_sequence() .unwrap();
 
         let mut iter = result.iter();
         let mut recommendations = Vec::new();
@@ -124,19 +124,19 @@ impl FromRedisValue for Recommendations {
         let count: u64 = redis::from_redis_value(iter.next().unwrap())?;
 
         while let (Some(id), Some(values)) = (iter.next(), iter.next()) {
-            let id: String = redis::from_redis_value(id).unwrap();
+            let id: String = redis::from_redis_value(id)?;
             let mut values = values.as_sequence().unwrap().iter();
             let mut title: String = String::new();
             let mut score: f32 = 0.0;
 
             while let (Some(k), Some(v)) = (values.next(), values.next()) {
-                let key: String = redis::from_redis_value(k).unwrap();
+                let key: String = redis::from_redis_value(k)?;
                 match key.as_str() {
                     "title" => {
-                        title = redis::from_redis_value(v).unwrap();
+                        title = redis::from_redis_value(v)?;
                     }
                     "score" => {
-                        score = redis::from_redis_value(v).unwrap();
+                        score = redis::from_redis_value(v)?;
                     }
                     _ => {}
                 }
